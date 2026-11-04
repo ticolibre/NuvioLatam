@@ -37,13 +37,13 @@ Esto es un **plugin para Nuvio**. Para instalarlo:
 
 | Provider | Películas | Series |
 |---|---|---|
-| `addonlatam` | ✅ | ✅ |
 | `allcalidad` | ✅ | ✅ |
 | `animeav1` | ✅ | ✅ |
 | `areshd` | ✅ | ✅ |
 | `cinecalidad` | ✅ | ❌ |
 | `cinehax` | ✅ | ✅ |
 | `cinehaxplus` | ✅ | ✅ |
+| `cinehdplus` | ✅ | ✅ |
 | `cuevana` | ✅ | ✅ |
 | `deepflix` | ✅ | ✅ |
 | `doramasflix` | ✅ | ✅ |

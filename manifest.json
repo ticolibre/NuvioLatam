@@ -1,6 +1,6 @@
 {
   "name": "Nuvio Latam+",
-  "version": "2.2.16",
+  "version": "2.2.18",
   "scrapers": [
     {
       "id": "cinecalidad",
@@ -338,22 +338,6 @@
       ]
     },
     {
-      "id": "addonlatam",
-      "name": "Addon Latam",
-      "description": "Streams en Español desde el add-on Addon Latam (addonlatam.duckdns.org)",
-      "version": "1.0.1",
-      "author": "TicoLibre",
-      "supportedTypes": [
-        "movie",
-        "tv"
-      ],
-      "filename": "providers/addonlatam.js",
-      "enabled": true,
-      "contentLanguage": [
-        "es"
-      ]
-    },
-    {
       "id": "cinehaxplus",
       "name": "CineHax+",
       "description": "Streams en Español desde cinehaxplus.com",
@@ -364,6 +348,22 @@
         "tv"
       ],
       "filename": "providers/cinehaxplus.js",
+      "enabled": true,
+      "contentLanguage": [
+        "es"
+      ]
+    },
+    {
+      "id": "cinehdplus",
+      "name": "CineHDPlus",
+      "description": "Streams en Español desde cinehdplus.org",
+      "version": "1.0.0",
+      "author": "TicoLibre",
+      "supportedTypes": [
+        "movie",
+        "tv"
+      ],
+      "filename": "providers/cinehdplus.js",
       "enabled": true,
       "contentLanguage": [
         "es"
