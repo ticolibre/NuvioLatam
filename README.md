@@ -52,6 +52,7 @@ Esto es un **plugin para Nuvio**. Para instalarlo:
 | `jkanime` | ✅ | ✅ |
 | `lamovie` | ✅ | ✅ |
 | `latanime` | ✅ | ✅ |
+| `max` | ✅ | ✅ |
 | `monoschinos` | ✅ | ✅ |
 | `pelispedia` | ✅ | ✅ |
 | `pelisforte` | ✅ | ✅ |

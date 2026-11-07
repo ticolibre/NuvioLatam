@@ -1,7 +1,23 @@
 {
   "name": "Nuvio Latam+",
-  "version": "2.2.18",
+  "version": "2.2.19",
   "scrapers": [
+    {
+      "id": "max",
+      "name": "Max",
+      "description": "Películas y series en Español.",
+      "version": "1.0.0",
+      "author": "TicoLibre",
+      "supportedTypes": [
+        "movie",
+        "tv"
+      ],
+      "filename": "providers/max.js",
+      "enabled": true,
+      "contentLanguage": [
+        "es"
+      ]
+    },
     {
       "id": "cinecalidad",
       "name": "CineCalidad",
