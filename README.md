@@ -27,7 +27,7 @@ Esto es un **plugin para Nuvio**. Para instalarlo:
 1. Abre Nuvio y ve a **Profile → Content & Discovery → Plugins**
 2. Agrega la manifest URL:
    ```
-   https://raw.githubusercontent.com/ticolibre/Nuvio/main/manifest.json
+   https://raw.githubusercontent.com/ticolibre/NuvioLatam/main/manifest.json
    ```
 3. Haz clic en **Install Plugins repository**
 
