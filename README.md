@@ -40,6 +40,7 @@ Esto es un **plugin para Nuvio**. Para instalarlo:
 | `allcalidad` | ✅ | ✅ |
 | `animeav1` | ✅ | ✅ |
 | `areshd` | ✅ | ✅ |
+| `bigbang` | ✅ | ✅ |
 | `cinecalidad` | ✅ | ❌ |
 | `cinehax` | ✅ | ✅ |
 | `cinehaxplus` | ✅ | ✅ |
