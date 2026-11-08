@@ -37,10 +37,10 @@ Esto es un **plugin para Nuvio**. Para instalarlo:
 
 | Provider | Películas | Series |
 |---|---|---|
+| `7movies` | ✅ | ✅ |
 | `allcalidad` | ✅ | ✅ |
 | `animeav1` | ✅ | ✅ |
 | `areshd` | ✅ | ✅ |
-| `bigbang` | ✅ | ✅ |
 | `cinecalidad` | ✅ | ❌ |
 | `cinehax` | ✅ | ✅ |
 | `cinehaxplus` | ✅ | ✅ |
