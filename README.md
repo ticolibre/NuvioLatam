@@ -47,6 +47,7 @@ Esto es un **plugin para Nuvio**. Para instalarlo:
 | `cinehdplus` | ✅ | ✅ |
 | `cuevana` | ✅ | ✅ |
 | `deepflix` | ✅ | ✅ |
+| `detodopeliculas` | ✅ | ✅ |
 | `doramasflix` | ✅ | ✅ |
 | `embed69` | ✅ | ✅ |
 | `henaojara` | ✅ | ✅ |
