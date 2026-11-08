@@ -94,17 +94,142 @@ function providerLabel(id) {
   return key ? key.charAt(0).toUpperCase() + key.slice(1) : "";
 }
 
-function detectLanguage(label) {
-  if (!label) return "";
-  var text = String(label);
-  if (/latin\s*(american)?\s*spanish|spanish\s*latin|latino/i.test(text)) return "Latino";
-  if (/spanish|espa\u00F1ol|castellano|espa\u00F1a/i.test(text)) return "Espa\u00F1ol";
-  if (/multi[\s-]*audio/i.test(text)) return "Multi-audio";
-  if (/original/i.test(text)) return "Original";
-  if (/english|ingl\u00E9s/i.test(text)) return "Ingl\u00E9s";
+var LANGUAGE_NAMES = [
+  [/latin\s*(american)?\s*spanish|spanish\s*latin|latino|espa\u00F1ol\s*latino/i, "Latino"],
+  [/spanish|espa\u00F1ol|castellano/i, "Espa\u00F1ol"],
+  [/multi[\s-]*audio/i, "Multi-audio"],
+  [/original/i, "Original"],
+  [/english|ingl\u00E9s/i, "Ingl\u00E9s"],
+  [/french|franc\u00E9s/i, "Franc\u00E9s"],
+  [/german|alem\u00E1n/i, "Alem\u00E1n"],
+  [/italian|italiano/i, "Italiano"],
+  [/portugu/i, "Portugu\u00E9s"],
+  [/russian|ruso/i, "Ruso"],
+  [/ukrainian|ucraniano/i, "Ucraniano"],
+  [/hindi|hind\u00FA/i, "Hindi"],
+  [/tamil/i, "Tamil"],
+  [/telugu|t\u00E9lugu/i, "T\u00E9lugu"],
+  [/malayalam|malabar/i, "Malabar"],
+  [/kannada|canar\u00E9s/i, "Canar\u00E9s"],
+  [/bengali|bengal\u00ED/i, "Bengal\u00ED"],
+  [/marathi/i, "Marathi"],
+  [/punjabi/i, "Punjabi"],
+  [/gujarati/i, "Gujarati"],
+  [/urdu/i, "Urdu"],
+  [/arabic|\u00E1rabe/i, "\u00C1rabe"],
+  [/turkish|turco/i, "Turco"],
+  [/japanese|japon\u00E9s/i, "Japon\u00E9s"],
+  [/korean|coreano/i, "Coreano"],
+  [/chinese|mandarin|canton\u00E9s|chino/i, "Chino"],
+  [/thai|tailand\u00E9s/i, "Tailand\u00E9s"],
+  [/vietnamese|vietnamita/i, "Vietnamita"],
+  [/indonesian|indonesio/i, "Indonesio"],
+  [/filipino|tagalog/i, "Filipino"],
+  [/dutch|neerland\u00E9s/i, "Neerland\u00E9s"],
+  [/polish|polaco/i, "Polaco"],
+  [/swedish|sueco/i, "Sueco"],
+  [/norwegian|noruego/i, "Noruego"],
+  [/danish|dan\u00E9s/i, "Dan\u00E9s"],
+  [/finnish|finland\u00E9s/i, "Finland\u00E9s"],
+  [/greek|griego/i, "Griego"],
+  [/hebrew|hebreo/i, "Hebreo"],
+  [/czech|checo/i, "Checo"],
+  [/hungarian|h\u00FAngaro/i, "H\u00FAngaro"],
+  [/romanian|rumano/i, "Rumano"],
+  [/serbian|serbio/i, "Serbio"],
+  [/croatian|croata/i, "Croata"],
+  [/bulgarian|b\u00FAlgaro/i, "B\u00FAlgaro"],
+  [/slovak|eslovaco/i, "Eslovaco"],
+  [/slovenian|esloveno/i, "Esloveno"],
+  [/persian|farsi|persa/i, "Persa"],
+  [/swahili|suajili/i, "Suajili"],
+  [/afrikaans/i, "Afrik\u00E1ans"],
+  [/icelandic|island\u00E9s/i, "Island\u00E9s"],
+  [/lithuanian|lituano/i, "Lituano"],
+  [/latvian|let\u00F3n/i, "Let\u00F3n"],
+  [/estonian|estonio/i, "Estonio"],
+  [/bosnian|bosnio/i, "Bosnio"],
+  [/macedonian|macedonio/i, "Macedonio"],
+  [/albanian|alban\u00E9s/i, "Alban\u00E9s"],
+  [/georgian|georgiano/i, "Georgiano"],
+  [/armenian|armenio/i, "Armenio"],
+  [/kazakh|kazajo/i, "Kazajo"],
+  [/uzbek|uzbeko/i, "Uzbeko"],
+  [/azerbaijani|azer\u00ED/i, "Azer\u00ED"],
+  [/nepali|nepal\u00ED/i, "Nepal\u00ED"],
+  [/sinhala|cingal\u00E9s/i, "Cingal\u00E9s"],
+  [/burmese|birmano/i, "Birmano"],
+  [/khmer|jemer/i, "Jemer"],
+  [/lao|laosiano/i, "Laosiano"],
+  [/mongolian|mongol/i, "Mongol"]
+];
+
+var LANGUAGE_CODES = {
+  es: "Espa\u00F1ol", spa: "Espa\u00F1ol", "es-mx": "Latino", "es-la": "Latino",
+  en: "Ingl\u00E9s", eng: "Ingl\u00E9s", fr: "Franc\u00E9s", fra: "Franc\u00E9s", fre: "Franc\u00E9s",
+  de: "Alem\u00E1n", deu: "Alem\u00E1n", ger: "Alem\u00E1n", it: "Italiano", ita: "Italiano",
+  pt: "Portugu\u00E9s", por: "Portugu\u00E9s", ru: "Ruso", rus: "Ruso", uk: "Ucraniano", ukr: "Ucraniano",
+  hi: "Hindi", hin: "Hindi", ta: "Tamil", tam: "Tamil", te: "T\u00E9lugu", tel: "T\u00E9lugu",
+  ml: "Malabar", mal: "Malabar", kn: "Canar\u00E9s", kan: "Canar\u00E9s", bn: "Bengal\u00ED", ben: "Bengal\u00ED",
+  ar: "\u00C1rabe", ara: "\u00C1rabe", tr: "Turco", tur: "Turco", ja: "Japon\u00E9s", jpn: "Japon\u00E9s",
+  ko: "Coreano", kor: "Coreano", zh: "Chino", zho: "Chino", chi: "Chino", th: "Tailand\u00E9s", tha: "Tailand\u00E9s",
+  vi: "Vietnamita", vie: "Vietnamita", id: "Indonesio", ind: "Indonesio", fil: "Filipino", tl: "Filipino",
+  nl: "Neerland\u00E9s", nld: "Neerland\u00E9s", dut: "Neerland\u00E9s", pl: "Polaco", pol: "Polaco",
+  sv: "Sueco", swe: "Sueco", no: "Noruego", nor: "Noruego", da: "Dan\u00E9s", dan: "Dan\u00E9s",
+  fi: "Finland\u00E9s", fin: "Finland\u00E9s", el: "Griego", ell: "Griego", he: "Hebreo", heb: "Hebreo",
+  cs: "Checo", ces: "Checo", hu: "H\u00FAngaro", hun: "H\u00FAngaro", ro: "Rumano", ron: "Rumano",
+  sr: "Serbio", srp: "Serbio", hr: "Croata", hrv: "Croata", bg: "B\u00FAlgaro", bul: "B\u00FAlgaro",
+  sk: "Eslovaco", slk: "Eslovaco", sl: "Esloveno", slv: "Esloveno", fa: "Persa", fas: "Persa", per: "Persa",
+  sw: "Suajili", swa: "Suajili", af: "Afrik\u00E1ans", afr: "Afrik\u00E1ans", is: "Island\u00E9s", isl: "Island\u00E9s",
+  lt: "Lituano", lit: "Lituano", lv: "Let\u00F3n", lav: "Let\u00F3n", et: "Estonio", est: "Estonio",
+  bs: "Bosnio", bos: "Bosnio", mk: "Macedonio", mkd: "Macedonio", sq: "Alban\u00E9s", sqi: "Alban\u00E9s",
+  ka: "Georgiano", kat: "Georgiano", hy: "Armenio", hye: "Armenio", kk: "Kazajo", kaz: "Kazajo",
+  uz: "Uzbeko", uzb: "Uzbeko", az: "Azer\u00ED", aze: "Azer\u00ED", ne: "Nepal\u00ED", nep: "Nepal\u00ED",
+  si: "Cingal\u00E9s", sin: "Cingal\u00E9s", my: "Birmano", mya: "Birmano", km: "Jemer", khm: "Jemer",
+  lo: "Laosiano", lao: "Laosiano", mn: "Mongol", mon: "Mongol"
+};
+
+function detectLanguages(label) {
+  var text = String(label || "");
+  if (!text) return [];
+  var out = [];
+
+  // "Orion · Hindi Subbed" -> keep the language part only.
   var parts = text.split("\xB7");
-  if (parts.length > 1) return parts[1].trim();
-  return "";
+  if (parts.length > 1) text = parts[parts.length - 1];
+
+  var tokens = text.toLowerCase().match(/[a-z]{2,3}(?:-[a-z]{2})?/g) || [];
+  for (var t = 0; t < tokens.length; t++) {
+    var viaCode = LANGUAGE_CODES[tokens[t]];
+    if (viaCode && out.indexOf(viaCode) === -1) out.push(viaCode);
+  }
+
+  for (var i = 0; i < LANGUAGE_NAMES.length; i++) {
+    if (LANGUAGE_NAMES[i][0].test(text)) {
+      var lang = LANGUAGE_NAMES[i][1];
+      if (out.indexOf(lang) === -1) out.push(lang);
+    }
+  }
+
+  out.sort(function (a, b) {
+    return languageScore(a) - languageScore(b);
+  });
+  return out;
+}
+
+function detectLanguage(label) {
+  var langs = detectLanguages(label);
+  return langs.length ? langs[0] : "";
+}
+
+function languageLabel(languages) {
+  if (!languages || !languages.length) return "";
+  var ordered = languages.slice().sort(function (a, b) {
+    return languageScore(a) - languageScore(b);
+  });
+  var head = ordered.slice(0, 3).join("/");
+  if (ordered.length > 3) head += " +" + (ordered.length - 3);
+  return head;
 }
 
 function isSpanish(language) {
@@ -117,7 +242,7 @@ function absolutize(url) {
 }
 
 function parseMaster(text) {
-  var info = { quality: "HD", language: "" };
+  var info = { quality: "HD", language: "", languages: [] };
   if (!text) return info;
 
   var maxW = 0;
@@ -136,17 +261,20 @@ function parseMaster(text) {
   var mm;
   while ((mm = mediaRe.exec(text)) !== null) {
     var nameMatch = mm[0].match(/NAME="([^"]+)"/i);
-    var name = nameMatch ? nameMatch[1] : "";
-    if (/spanish\s*latin/i.test(name)) {
-      info.language = "Latino";
-      break;
-    }
-    if (/^spanish$/i.test(name) || /spanish\s*(es|castellano)/i.test(name)) {
-      if (!info.language) info.language = "Espa\u00F1ol";
-    } else if (/^english$/i.test(name) && !info.language) {
-      info.language = "Ingl\u00E9s";
+    var langMatch = mm[0].match(/LANGUAGE="([^"]+)"/i);
+    var found = detectLanguages((nameMatch ? nameMatch[1] : "") + " " + (langMatch ? langMatch[1] : ""));
+    for (var f = 0; f < found.length; f++) {
+      if (info.languages.indexOf(found[f]) === -1) info.languages.push(found[f]);
     }
   }
+
+  for (var s = 0; s < info.languages.length; s++) {
+    if (isSpanish(info.languages[s])) {
+      info.language = info.languages[s];
+      break;
+    }
+  }
+  if (!info.language && info.languages.length) info.language = info.languages[0];
   return info;
 }
 
@@ -193,11 +321,13 @@ function toStream(item, fallbackProvider) {
   if (!item || !item.url) return null;
   var providerId = String(item.provider || fallbackProvider || "").toLowerCase();
   var label = item.name || providerLabel(providerId);
-  var language = detectLanguage(label);
+  var languages = detectLanguages(label);
+  var language = languages.length ? languages[0] : "";
   var quality = qualityFromRungs(item.rungs) || qualityFromRes(item.res) || "HD";
   var providerName = providerLabel(providerId);
   var titleParts = [quality];
-  if (language) titleParts.push(language);
+  var langText = languageLabel(languages);
+  if (langText) titleParts.push(langText);
   if (providerName) titleParts.push(providerName);
 
   var stream = {
@@ -207,6 +337,7 @@ function toStream(item, fallbackProvider) {
     quality: quality
   };
   if (language) stream.language = language;
+  if (languages.length) stream._languages = languages;
   if (item.type) stream.type = item.type;
   if (stream.url.indexOf("/api/orion/") !== -1) stream.headers = PLAY_HEADERS;
   if (item.subtitleListUrl) stream._subtitleListUrl = absolutize(item.subtitleListUrl);
@@ -281,14 +412,27 @@ function qualityScore(quality) {
 
 function finish(streams, started) {
   var seen = {};
-  var out = [];
+  var unique = [];
   for (var i = 0; i < streams.length; i++) {
     var s = streams[i];
     if (!s || !s.url || seen[s.url]) continue;
     seen[s.url] = true;
     delete s._subtitleListUrl;
-    out.push(s);
+    delete s._languages;
+    unique.push(s);
   }
+
+  // Spanish only: when a Spanish track exists, drop every known non-Spanish
+  // source. With no Spanish, keep "Multi-audio" / untagged sources because
+  // they may hide a Spanish track the player can switch to.
+  var spanish = unique.filter(function (s) {
+    return isSpanish(s.language);
+  });
+  var potential = unique.filter(function (s) {
+    return s.language === "Multi-audio" || !s.language;
+  });
+  var out = spanish.length ? spanish : potential;
+
   out.sort(function (a, b) {
     var lang = languageScore(a.language) - languageScore(b.language);
     if (lang !== 0) return lang;
@@ -296,11 +440,10 @@ function finish(streams, started) {
   });
 
   var elapsed = ((Date.now() - started) / 1e3).toFixed(2);
-  var spanish = out.filter(function (s) {
-    return isSpanish(s.language);
-  }).length;
-  console.log("[7Movies] \u2713 " + out.length + " stream(s), " + spanish +
-    " en espa\u00F1ol, en " + elapsed + "s");
+  var dropped = unique.length - out.length;
+  console.log("[7Movies] \u2713 " + out.length + " stream(s), " + spanish.length +
+    " en espa\u00F1ol" + (dropped > 0 ? ", " + dropped + " sin espa\u00F1ol descartados" : "") +
+    ", en " + elapsed + "s");
   return out;
 }
 
@@ -347,15 +490,18 @@ function getStreams(tmdbId, mediaType, season, episode) {
       add([bigbang]);
     }
 
-    // 2) Vexon (absolute URL, no headers needed).
+    // 2) Vexon (absolute URL). Its master lists the audio tracks, so probe it
+    //    too instead of guessing from the provider name.
+    var vexon = null;
     if (meta.vexonUrl) {
-      add([{
+      vexon = {
         name: "7Movies",
         title: "Vexon",
         url: meta.vexonUrl,
         quality: "HD",
         type: "hls"
-      }]);
+      };
+      add([vexon]);
     }
 
     // 3) Orion's baked dub list: often includes "Latin American Spanish" and
@@ -369,14 +515,20 @@ function getStreams(tmdbId, mediaType, season, episode) {
       add(orion);
     }
 
-    var refine = bigbang
-      ? fetchText(bigbang.url, { "User-Agent": UA }).then(function (text) {
-          var info = parseMaster(text);
-          if (info.quality) bigbang.quality = info.quality;
-          if (info.language) bigbang.language = info.language;
-          bigbang.title = [info.quality, info.language, "BigBang"].filter(Boolean).join(" \xB7 ");
-        })
-      : Promise.resolve();
+    function refineMaster(stream, providerName) {
+      return fetchText(stream.url, { "User-Agent": UA }).then(function (text) {
+        var info = parseMaster(text);
+        if (info.quality) stream.quality = info.quality;
+        if (info.language) stream.language = info.language;
+        stream.title = [stream.quality, languageLabel(info.languages), providerName]
+          .filter(Boolean).join(" \xB7 ");
+      });
+    }
+
+    var tasks = [];
+    if (bigbang) tasks.push(refineMaster(bigbang, "BigBang"));
+    if (vexon) tasks.push(refineMaster(vexon, "Vexon"));
+    var refine = tasks.length ? Promise.all(tasks) : Promise.resolve([]);
 
     return refine.then(function () {
       spanish = streams.filter(function (s) {
