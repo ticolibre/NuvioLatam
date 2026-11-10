@@ -72,8 +72,6 @@ Esto es un **plugin para Nuvio**. Para instalarlo:
 - Los providers de **anime** se prueban contra 5 anime: *Naruto*, *Jujutsu Kaisen*, *One Piece*, *Demon Slayer* y *Solo Leveling*.
 - El resto se prueba contra 5 películas/series: *Obsession*, *Backrooms* (2026), *Parasite*, *Squid Game* y *Toy Story 5*.
 - `cinecalidad` solo soporta películas, así que su máximo aplicable es `4/4`.
-- `cuevana` quedó en `4/5`: *Squid Game* solo publica enlaces de VOE y VidHide que el sitio ya eliminó. El resto de sus servidores se actualizó y vuelve a resolver.
-- `peliserieshoy` está deshabilitado: `pelisserieshoy.com` y `player.pelisserieshoy.com` redirigen a Google (dominio caído). El provider se conserva por si el sitio vuelve con otro dominio.
 - Última prueba: **9 nov 2026**, con `--score --timeout=30000 --concurrency=8`. El score es una foto del momento: los sitios cambian y un provider puede fallar de forma intermitente.
 
 ---
