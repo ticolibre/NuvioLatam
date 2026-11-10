@@ -277,47 +277,69 @@ function unpackEval(payload, radix, symtab) {
     return symtab[idx] && symtab[idx] !== "" ? symtab[idx] : match;
   });
 }
+function parseStreamwishHtml(data, embedHost) {
+  var fileMatch = data.match(/file\s*:\s*["']([^"']+)["']/i);
+  if (fileMatch) {
+    var url = fileMatch[1];
+    if (url.charAt(0) === "/")
+      url = embedHost + url;
+    return { url: url, quality: inferQuality(url), headers: { "User-Agent": UA, "Referer": embedHost + "/" } };
+  }
+  var packMatch = data.match(/eval\(function\(p,a,c,k,e,[a-z]\)\{[^}]+\}\s*\('([\s\S]+?)',\s*(\d+),\s*(\d+),\s*'([\s\S]+?)'\.split\('\|'\)/);
+  if (packMatch) {
+    var unpacked = unpackEval(packMatch[1], parseInt(packMatch[2]), packMatch[4].split("|"));
+    // Current StreamWish mirrors publish links={"hls2":"..."} inside the packed payload.
+    var om = unpacked.match(/["']hls[234]["']\s*:\s*["']([^"']+)["']/i);
+    if (om) {
+      var u2 = om[1];
+      if (u2.charAt(0) === "/")
+        u2 = embedHost + u2;
+      return { url: u2, quality: inferQuality(u2), headers: { "User-Agent": UA, "Referer": embedHost + "/" } };
+    }
+  }
+  var rawM3u8 = data.match(/https?:\/\/[^"'\s\\]+\.m3u8[^"'\s\\]*/i);
+  if (rawM3u8)
+    return { url: rawM3u8[0], quality: inferQuality(rawM3u8[0]), headers: { "User-Agent": UA, "Referer": embedHost + "/" } };
+  return null;
+}
 function resolveStreamwish(embedUrl) {
   return __async(this, null, function* () {
     try {
       console.log(`[Cuevana][StreamWish] Resolviendo: ${embedUrl}`);
-      var fetchUrl = embedUrl;
-      if (fetchUrl.indexOf("hglink.to") !== -1)
-        fetchUrl = fetchUrl.replace("hglink.to", "vibuxer.com");
-      var hm = fetchUrl.match(/^(https?:\/\/[^/]+)/);
-      var embedHost = hm ? hm[1] : "https://hlswish.com";
-      var resp = yield fetch(fetchUrl, {
-        headers: {
-          "User-Agent": UA,
-          "Referer": BASE_URL + "/",
-          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-        },
-        redirect: "follow"
-      });
-      if (!resp.ok)
-        throw new Error(`HTTP ${resp.status}`);
-      var data = yield resp.text();
-      var fileMatch = data.match(/file\s*:\s*["']([^"']+)["']/i);
-      if (fileMatch) {
-        var url = fileMatch[1];
-        if (url.charAt(0) === "/")
-          url = embedHost + url;
-        return { url: url, quality: inferQuality(url), headers: { "User-Agent": UA, "Referer": embedHost + "/" } };
+      var id = embedUrl.replace(/[?#].*$/, "").replace(/\/+$/, "").split("/").pop().replace(/\.html$/, "");
+      // streamwish.to now answers with a JS challenge; the vibuxer mirror still
+      // serves the packed player, so try it (and hglink, which redirects there).
+      var candidates = [embedUrl];
+      if (id) {
+        candidates.push("https://vibuxer.com/e/" + id);
+        candidates.push("https://hglink.to/e/" + id);
       }
-      var packMatch = data.match(/eval\(function\(p,a,c,k,e,[a-z]\)\{[^}]+\}\s*\('([\s\S]+?)',\s*(\d+),\s*(\d+),\s*'([\s\S]+?)'\.split\('\|'\)/);
-      if (packMatch) {
-        var unpacked = unpackEval(packMatch[1], parseInt(packMatch[2]), packMatch[4].split("|"));
-        var om = unpacked.match(/"hls[234]"\s*:\s*"([^"]+)"/);
-        if (om) {
-          var u2 = om[1];
-          if (u2.charAt(0) === "/")
-            u2 = embedHost + u2;
-          return { url: u2, quality: inferQuality(u2), headers: { "User-Agent": UA, "Referer": embedHost + "/" } };
+      var seen = {};
+      for (var ci = 0; ci < candidates.length; ci++) {
+        var fetchUrl = candidates[ci];
+        if (fetchUrl.indexOf("hglink.to") !== -1)
+          fetchUrl = fetchUrl.replace("hglink.to", "vibuxer.com");
+        if (seen[fetchUrl])
+          continue;
+        seen[fetchUrl] = true;
+        var hm = fetchUrl.match(/^(https?:\/\/[^/]+)/);
+        var embedHost = hm ? hm[1] : "https://hlswish.com";
+        var resp = yield fetch(fetchUrl, {
+          headers: {
+            "User-Agent": UA,
+            "Referer": BASE_URL + "/",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+          },
+          redirect: "follow"
+        });
+        if (!resp.ok) {
+          console.log(`[Cuevana][StreamWish] ${fetchUrl} → HTTP ${resp.status}`);
+          continue;
         }
+        var parsed = parseStreamwishHtml(yield resp.text(), embedHost);
+        if (parsed)
+          return parsed;
       }
-      var rawM3u8 = data.match(/https?:\/\/[^"'\s\\]+\.m3u8[^"'\s\\]*/i);
-      if (rawM3u8)
-        return { url: rawM3u8[0], quality: inferQuality(rawM3u8[0]), headers: { "User-Agent": UA, "Referer": embedHost + "/" } };
       return null;
     } catch (err) {
       console.log(`[Cuevana][StreamWish] Error: ${err.message}`);
@@ -329,7 +351,14 @@ function resolveVidhide(embedUrl) {
   return __async(this, null, function* () {
     try {
       console.log(`[Cuevana][VidHide] Resolviendo: ${embedUrl}`);
-      var resp = yield fetch(embedUrl, {
+      // filelions/vidhidepro now bounce to vidhidefast.com, whose TLS handshake
+      // fails in Node. dhtpre.com serves the same player and works from here.
+      var target = embedUrl;
+      if (/^https?:\/\/(?:filelions|vidhide[a-z]*)\.[^/]+/i.test(target)) {
+        target = target.replace(/^https?:\/\/[^/]+/i, "https://dhtpre.com");
+        console.log(`[Cuevana][VidHide] Espejo: ${target}`);
+      }
+      var resp = yield fetch(target, {
         headers: { "User-Agent": UA, "Accept": "text/html", "Referer": BASE_URL + "/" },
         redirect: "follow"
       });
@@ -348,8 +377,8 @@ function resolveVidhide(embedUrl) {
         return null;
       var m3u8Url = hls[1];
       if (m3u8Url.indexOf("http") !== 0)
-        m3u8Url = resolveUrl(m3u8Url, embedUrl);
-      var origin = getOrigin(embedUrl);
+        m3u8Url = resolveUrl(m3u8Url, target);
+      var origin = getOrigin(target);
       return {
         url: m3u8Url,
         quality: inferQuality(m3u8Url),
