@@ -41,11 +41,19 @@ const ROOT = __dirname;
 const MANIFEST_PATH = path.join(ROOT, 'manifest.json');
 
 // ---------------------------------------------------------------------------
-// Fixtures — the cascade tries them in this order
+// Fixtures — grouped by suite.
+//
+//   general -> movie/series sources (5 titles)
+//   anime   -> anime sources (5 series)
+//   extra   -> still available with --fixtures=..., not part of the score
+//
+// The score for a provider is OK / applicable titles within its suite.
 // ---------------------------------------------------------------------------
 const FIXTURES = [
+  // --- general suite -------------------------------------------------------
   {
     key: 'obsession',
+    suite: 'general',
     label: 'Obsession',
     tmdbId: '1339713',
     type: 'movie',
@@ -53,39 +61,26 @@ const FIXTURES = [
     episode: null,
   },
   {
-    key: 'naruto',
-    label: 'Naruto',
-    tmdbId: '46260',
-    type: 'tv',
-    season: 1,
-    episode: 1,
-  },
-  {
-    key: 'aftersun',
-    label: 'Aftersun',
-    tmdbId: '965150',
+    key: 'backrooms',
+    suite: 'general',
+    label: 'Backrooms',
+    tmdbId: '1083381',
     type: 'movie',
     season: null,
     episode: null,
   },
   {
-    key: 'jujutsu',
-    label: 'Jujutsu Kaisen',
-    tmdbId: '95479',
-    type: 'tv',
-    season: 1,
-    episode: 1,
-  },
-  {
-    key: 'hope',
-    label: 'Hope',
-    tmdbId: '1058424',
-    type: 'movie', // Korean film "호프" (2026), not a series
+    key: 'parasite',
+    suite: 'general',
+    label: 'Parasite',
+    tmdbId: '496243',
+    type: 'movie',
     season: null,
     episode: null,
   },
   {
     key: 'squidgame',
+    suite: 'general',
     label: 'Squid Game',
     tmdbId: '93405',
     type: 'tv',
@@ -93,14 +88,105 @@ const FIXTURES = [
     episode: 1,
   },
   {
-    key: 'parasite',
-    label: 'Parasite',
-    tmdbId: '496243',
+    key: 'toystory',
+    suite: 'general',
+    label: 'Toy Story 5',
+    tmdbId: '1084244',
     type: 'movie',
     season: null,
     episode: null,
   },
+
+  // --- anime suite ---------------------------------------------------------
+  {
+    key: 'naruto',
+    suite: 'anime',
+    label: 'Naruto',
+    tmdbId: '46260',
+    type: 'tv',
+    season: 1,
+    episode: 1,
+  },
+  {
+    key: 'jujutsu',
+    suite: 'anime',
+    label: 'Jujutsu Kaisen',
+    tmdbId: '95479',
+    type: 'tv',
+    season: 1,
+    episode: 1,
+  },
+  {
+    key: 'onepiece',
+    suite: 'anime',
+    label: 'One Piece',
+    tmdbId: '37854',
+    type: 'tv',
+    season: 1,
+    episode: 1,
+  },
+  {
+    key: 'demonslayer',
+    suite: 'anime',
+    label: 'Demon Slayer',
+    tmdbId: '85937',
+    type: 'tv',
+    season: 1,
+    episode: 1,
+  },
+  {
+    key: 'sololeveling',
+    suite: 'anime',
+    label: 'Solo Leveling',
+    tmdbId: '151807',
+    type: 'tv',
+    season: 1,
+    episode: 1,
+  },
+
+  // --- extra fixtures (manual only) ---------------------------------------
+  {
+    key: 'aftersun',
+    suite: 'extra',
+    label: 'Aftersun',
+    tmdbId: '965150',
+    type: 'movie',
+    season: null,
+    episode: null,
+  },
+  {
+    key: 'hope',
+    suite: 'extra',
+    label: 'Hope',
+    tmdbId: '1058424',
+    type: 'movie', // Korean film "호프" (2026), not a series
+    season: null,
+    episode: null,
+  },
 ];
+
+const SUITE_KEYS = {
+  general: ['obsession', 'backrooms', 'parasite', 'squidgame', 'toystory'],
+  anime: ['naruto', 'jujutsu', 'onepiece', 'demonslayer', 'sololeveling'],
+};
+
+// Anime-only sources. Everything else defaults to the general suite.
+const ANIME_PROVIDERS = new Set([
+  'animeav1',
+  'animejl',
+  'jkanime',
+  'henaojara',
+  'latanime',
+  'monoschinos',
+  'tioanime',
+]);
+
+function fixturesForSuite(suite) {
+  const keys = SUITE_KEYS[suite];
+  if (!keys) return [];
+  const byKey = new Map(FIXTURES.map((f) => [f.key, f]));
+  return keys.map((key) => byKey.get(key)).filter(Boolean);
+}
 
 // ---------------------------------------------------------------------------
 // CLI
@@ -116,6 +202,9 @@ function parseArgs(argv) {
     verbose: false,
     strict: false,
     matrix: false,
+    cascade: false,
+    score: false,
+    suite: 'auto',
     list: false,
     help: false,
   };
@@ -123,7 +212,8 @@ function parseArgs(argv) {
   for (const arg of argv) {
     if (arg === '--json') opts.json = true;
     else if (arg === '--matrix') opts.matrix = true;
-    else if (arg === '--cascade') opts.matrix = false;
+    else if (arg === '--cascade') opts.cascade = true;
+    else if (arg === '--score') opts.score = true;
     else if (arg === '--verbose' || arg === '-v') opts.verbose = true;
     else if (arg === '--strict') opts.strict = true;
     else if (arg === '--list') opts.list = true;
@@ -133,11 +223,18 @@ function parseArgs(argv) {
     else if (arg.startsWith('--only=')) opts.only = arg.split('=')[1].split(',').map((s) => s.trim()).filter(Boolean);
     else if (arg.startsWith('--skip=')) opts.skip = arg.split('=')[1].split(',').map((s) => s.trim()).filter(Boolean);
     else if (arg.startsWith('--fixtures=')) opts.fixtures = arg.split('=')[1].split(',').map((s) => s.trim()).filter(Boolean);
+    else if (arg.startsWith('--suite=')) opts.suite = arg.split('=')[1].trim().toLowerCase();
     else {
       process.stderr.write(`Unknown argument: ${arg}\n`);
       opts.help = true;
     }
   }
+
+  if (opts.suite !== 'auto' && opts.suite !== 'all' && !SUITE_KEYS[opts.suite]) {
+    process.stderr.write(`Unknown suite: ${opts.suite}. Valid suites: auto, general, anime, all\n`);
+    opts.help = true;
+  }
+
   return opts;
 }
 
@@ -148,23 +245,34 @@ Nuvio Latam+ provider smoke test
   node test.js [options]
 
 Modes:
-  (default)           Cascade: all providers on fixture 1, then only the ones
-                      that failed on fixture 2, and so on.
-  --matrix            Every provider × every fixture (old behaviour).
-  --cascade           Force cascade (default).
+  (default)           Score: every provider is tested against its own suite
+                      (anime providers -> 5 anime, the rest -> 5 movies/series).
+  --score             Same as default, explicit.
+  --cascade           All providers on fixture 1, only failures go to fixture 2…
+  --matrix            Every provider × every selected fixture.
 
 Options:
+  --suite=auto        auto (default): anime providers use the anime suite,
+                      everything else uses the general suite.
+  --suite=general     Force the 5 general titles.
+  --suite=anime       Force the 5 anime titles.
+  --suite=all         Force every fixture (general + anime + extras).
   --only=a,b          Only run these providers (id or name, case-insensitive)
   --skip=a,b          Skip these providers
-  --fixtures=obsession,naruto,aftersun,jujutsu,hope,squidgame,parasite
-                      Fixtures to use, in the order given
+  --fixtures=obsession,backrooms,parasite,squidgame,toystory,naruto,jujutsu,onepiece,demonslayer,sololeveling
+                      Override the suite with an explicit fixture list
   --timeout=30000     Per-provider timeout in ms (default 30000)
   --concurrency=6     Providers running at once (default 6)
   --json              Machine-readable output
-  --verbose, -v       Show provider console output (hidden by default)
-  --strict            Exit 1 if any provider never passed
-  --list              List providers and fixtures, run nothing
+  --verbose, -v       Show provider console output and per-title score detail
+  --strict            Exit 1 if any provider is not perfect
+  --list              List providers, suites and fixtures, run nothing
   --help, -h          This help
+
+Suites:
+  general (5)  Obsession, Backrooms, Parasite, Squid Game, Toy Story 5
+  anime   (5)  Naruto, Jujutsu Kaisen, One Piece, Demon Slayer, Solo Leveling
+  extra   (2)  Aftersun, Hope — manual only, never part of the score
 
 Statuses:
   OK n        provider returned n streams
@@ -172,6 +280,10 @@ Statuses:
   TIMEOUT     no answer within --timeout (counts as failed)
   ERROR       provider threw (load error, network error, parser crash)
   --          skipped (fixture type not in the provider's supportedTypes)
+
+Score:
+  x/y ⭐       y applicable titles, x returned at least one stream.
+              A perfect score means the provider got all of them.
 `);
 }
 
@@ -239,12 +351,16 @@ function loadProviders() {
   const scrapers = Array.isArray(manifest.scrapers) ? manifest.scrapers : [];
   return scrapers
     .filter((s) => s && s.enabled !== false && s.filename)
-    .map((s) => ({
-      id: s.id || path.basename(s.filename, '.js'),
-      name: s.name || s.id || path.basename(s.filename, '.js'),
-      filename: s.filename,
-      supportedTypes: Array.isArray(s.supportedTypes) ? s.supportedTypes : ['movie', 'tv'],
-    }));
+    .map((s) => {
+      const id = s.id || path.basename(s.filename, '.js');
+      return {
+        id,
+        name: s.name || id,
+        filename: s.filename,
+        supportedTypes: Array.isArray(s.supportedTypes) ? s.supportedTypes : ['movie', 'tv'],
+        suite: ANIME_PROVIDERS.has(id) ? 'anime' : 'general',
+      };
+    });
 }
 
 function matches(list, provider) {
@@ -509,21 +625,25 @@ async function main() {
     return true;
   });
 
-  let fixtures = FIXTURES;
-  if (opts.fixtures) {
-    const byKey = new Map(FIXTURES.map((f) => [f.key, f]));
-    fixtures = opts.fixtures
-      .map((key) => byKey.get(key.toLowerCase()))
-      .filter(Boolean);
-  }
+  const fixtureOverride = opts.fixtures
+    ? opts.fixtures.map((key) => FIXTURES.find((f) => f.key === key.toLowerCase())).filter(Boolean)
+    : null;
+
+  const selectedFixtures =
+    opts.suite === 'auto' || opts.suite === 'all' ? FIXTURES : fixturesForSuite(opts.suite);
 
   if (opts.list) {
     out(bold('Providers:'));
-    for (const p of providers) out(`  ${p.name}  ${dim(`(${p.id})`)}`);
-    out(bold('Fixtures (cascade order):'));
-    for (const f of FIXTURES) {
-      const ep = f.type === 'tv' ? ` S${f.season}E${f.episode}` : '';
-      out(`  ${f.key}  ${f.label} — ${f.type} ${f.tmdbId}${ep}`);
+    for (const p of providers) {
+      out(`  ${pad(p.name, 22)} ${dim(`(${p.id})`)}  ${p.suite}`);
+    }
+    for (const suite of ['general', 'anime', 'extra']) {
+      const list = suite === 'extra' ? FIXTURES.filter((f) => f.suite === 'extra') : fixturesForSuite(suite);
+      out(bold(`Fixtures — ${suite} (${list.length}):`));
+      for (const f of list) {
+        const ep = f.type === 'tv' ? ` S${f.season}E${f.episode}` : '';
+        out(`  ${f.key}  ${f.label} — ${f.type} ${f.tmdbId}${ep}${suite === 'extra' ? dim('  [manual]') : ''}`);
+      }
     }
     return 0;
   }
@@ -532,7 +652,7 @@ async function main() {
     process.stderr.write('No providers matched.\n');
     return 1;
   }
-  if (fixtures.length === 0) {
+  if (fixtureOverride && fixtureOverride.length === 0) {
     process.stderr.write('No fixtures matched. Valid keys: ' + FIXTURES.map((f) => f.key).join(', ') + '\n');
     return 1;
   }
@@ -540,14 +660,25 @@ async function main() {
   installFetchShim();
   if (!opts.verbose || opts.json) silenceConsole();
 
+  const mode = opts.matrix ? 'matrix' : opts.cascade ? 'cascade' : 'score';
+
   if (!opts.json) {
-    out(bold(`Nuvio Latam+ provider test — ${opts.matrix ? 'matrix' : 'cascade'}`));
-    out(`Fixtures: ${fixtures
-      .map((f) => `${f.label} (${f.type} ${f.tmdbId}${f.type === 'tv' ? ` S${f.season}E${f.episode}` : ''})`)
-      .join(' · ')}`);
+    out(bold(`Nuvio Latam+ provider test — ${mode}`));
+    if (mode === 'score') {
+      out(
+        `Suites: general ${fixturesForSuite('general').length} titles · anime ${fixturesForSuite('anime').length} titles` +
+          (opts.suite !== 'auto' ? ` · override: ${opts.suite}` : ''),
+      );
+      if (fixtureOverride) out(`Fixtures: ${fixtureOverride.map((f) => f.label).join(' · ')}`);
+    } else {
+      out(
+        `Fixtures: ${(fixtureOverride || selectedFixtures)
+          .map((f) => `${f.label} (${f.type} ${f.tmdbId}${f.type === 'tv' ? ` S${f.season}E${f.episode}` : ''})`)
+          .join(' · ')}`,
+      );
+    }
     out(
-      `${providers.length} providers · timeout ${opts.timeout / 1000}s · concurrency ${opts.concurrency}` +
-        (opts.matrix ? ` · ${providers.length * fixtures.length} checks` : ''),
+      `${providers.length} providers · timeout ${opts.timeout / 1000}s · concurrency ${opts.concurrency}`,
     );
     try {
       require.resolve('crypto-js');
@@ -558,10 +689,13 @@ async function main() {
     out('');
   }
 
-  if (opts.matrix) {
-    return runMatrix(providers, fixtures);
+  if (mode === 'score') {
+    return runScore(providers, fixtureOverride);
   }
-  return runCascadeMode(providers, fixtures);
+  if (mode === 'matrix') {
+    return runMatrix(providers, fixtureOverride || selectedFixtures);
+  }
+  return runCascadeMode(providers, fixtureOverride || selectedFixtures);
 }
 
 async function runMatrix(providers, fixtures) {
@@ -595,6 +729,125 @@ async function runMatrix(providers, fixtures) {
 
   if (opts.strict) return counts.ERROR + counts.TIMEOUT > 0 ? 1 : 0;
   return counts.OK + counts.EMPTY > 0 ? 0 : 1;
+}
+
+async function runScore(providers, fixtureOverride) {
+  const plan = [];
+  const pairs = [];
+
+  for (const provider of providers) {
+    const suite = fixtureOverride ? 'custom' : opts.suite === 'auto' ? provider.suite : opts.suite;
+    const fixtures =
+      fixtureOverride || (suite === 'all' ? FIXTURES : fixturesForSuite(suite));
+    plan.push({ provider, suite, fixtures });
+    for (const fixture of fixtures) pairs.push({ provider, fixture });
+  }
+
+  const results = await runBatch(pairs, 'S');
+
+  const rowsByProvider = new Map();
+  for (const result of results) {
+    if (!rowsByProvider.has(result.provider.id)) rowsByProvider.set(result.provider.id, []);
+    rowsByProvider.get(result.provider.id).push(result);
+  }
+
+  const scores = plan.map(({ provider, suite, fixtures }) => {
+    const rows = rowsByProvider.get(provider.id) || [];
+    const applicable = rows.filter((r) => r.status !== 'SKIP');
+    const ok = applicable.filter((r) => r.status === 'OK').length;
+    const total = applicable.length;
+    return {
+      provider,
+      suite,
+      ok,
+      total,
+      perfect: total > 0 && ok === total,
+      statuses: fixtures.map((fixture) => {
+        const row = rows.find((r) => r.fixture.key === fixture.key);
+        return {
+          fixture: fixture.key,
+          label: fixture.label,
+          status: row ? row.status : 'SKIP',
+          count: row ? row.count : 0,
+          error: row ? row.error || null : null,
+        };
+      }),
+    };
+  });
+
+  if (opts.json) {
+    process.stdout.write(
+      JSON.stringify(
+        {
+          mode: 'score',
+          generatedAt: new Date().toISOString(),
+          timeoutMs: opts.timeout,
+          concurrency: opts.concurrency,
+          suites: {
+            general: fixturesForSuite('general').map(fixtureMeta),
+            anime: fixturesForSuite('anime').map(fixtureMeta),
+          },
+          effective: plan.map((p) => ({
+            provider: p.provider.id,
+            suite: p.suite,
+            fixtures: p.fixtures.map((f) => f.key),
+          })),
+          results: results.map(resultMeta),
+          scores: scores.map((s) => ({
+            provider: s.provider.id,
+            providerName: s.provider.name,
+            suite: s.suite,
+            ok: s.ok,
+            total: s.total,
+            perfect: s.perfect,
+            statuses: s.statuses,
+          })),
+        },
+        null,
+        2,
+      ) + '\n',
+    );
+  } else {
+    printScoreTable(scores);
+  }
+
+  if (opts.strict) return scores.some((s) => !s.perfect) ? 1 : 0;
+  return scores.some((s) => s.ok > 0) ? 0 : 1;
+}
+
+function printScoreTable(scores) {
+  const nameWidth = Math.min(24, Math.max(10, ...scores.map((s) => s.provider.name.length))) + 2;
+  const suiteWidth = 10;
+  const scoreWidth = 10;
+
+  out(bold(pad('Provider', nameWidth) + pad('Suite', suiteWidth) + pad('Score', scoreWidth)));
+  for (const s of scores) {
+    const label = `${s.ok}/${s.total}${s.perfect ? ' ⭐' : ''}`;
+    const cell = pad(label, scoreWidth);
+    const painted = s.perfect ? green(cell) : s.ok === 0 ? red(cell) : yellow(cell);
+    out(pad(s.provider.name, nameWidth) + dim(pad(s.suite, suiteWidth)) + painted);
+  }
+
+  const perfect = scores.filter((s) => s.perfect).length;
+  out('');
+  out(`${green(`Perfect ${perfect}`)} / ${scores.length} providers`);
+
+  if (opts.verbose) {
+    out('');
+    out(bold('Detail'));
+    for (const s of scores) {
+      out(`${s.provider.name} ${dim(`(${s.suite})`)}`);
+      for (const st of s.statuses) {
+        const tail =
+          st.status === 'OK'
+            ? ` OK ${st.count}`
+            : st.status === 'SKIP'
+              ? ' —'
+              : ` ${st.status}${st.error ? ` · ${st.error}` : ''}`;
+        out(`  ${st.label}:${tail}`);
+      }
+    }
+  }
 }
 
 async function runCascadeMode(providers, fixtures) {

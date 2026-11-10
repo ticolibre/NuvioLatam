@@ -35,35 +35,46 @@ Esto es un **plugin para Nuvio**. Para instalarlo:
 
 ## Providers incluidos
 
-| Provider | Películas | Series |
-|---|---|---|
-| `7movies` | ✅ | ✅ |
-| `allcalidad` | ✅ | ✅ |
-| `animeav1` | ✅ | ✅ |
-| `areshd` | ✅ | ✅ |
-| `cinecalidad` | ✅ | ❌ |
-| `cinehax` | ✅ | ✅ |
-| `cinehaxplus` | ✅ | ✅ |
-| `cinehdplus` | ✅ | ✅ |
-| `cuevana` | ✅ | ✅ |
-| `deepflix` | ✅ | ✅ |
-| `detodopeliculas` | ✅ | ✅ |
-| `doramasflix` | ✅ | ✅ |
-| `embed69` | ✅ | ✅ |
-| `henaojara` | ✅ | ✅ |
-| `jkanime` | ✅ | ✅ |
-| `lamovie` | ✅ | ✅ |
-| `latanime` | ✅ | ✅ |
-| `max` | ✅ | ✅ |
-| `monoschinos` | ✅ | ✅ |
-| `pelispedia` | ✅ | ✅ |
-| `pelisforte` | ✅ | ✅ |
-| `pelisplus` | ✅ | ✅ |
-| `peliserieshoy` | ✅ | ✅ |
-| `seriesflix` | ✅ | ✅ |
-| `seriesmetro` | ✅ | ✅ |
-| `sololatino` | ✅ | ✅ |
-| `tioanime` | ✅ | ✅ |
+| Provider | Películas | Series | Score |
+|---|---|---|---|
+| `7movies` | ✅ | ✅ | 5/5 ⭐ |
+| `allcalidad` | ✅ | ✅ | 5/5 ⭐ |
+| `animeav1` | ✅ | ✅ | 3/5 |
+| `animejl` | ✅ | ✅ | 4/5 |
+| `areshd` | ✅ | ✅ | 2/5 |
+| `cinecalidad` | ✅ | ❌ | 3/4 |
+| `cinehax` | ✅ | ✅ | 5/5 ⭐ |
+| `cinehaxplus` | ✅ | ✅ | 1/5 |
+| `cinehdplus` | ✅ | ✅ | 4/5 |
+| `cuevana` | ✅ | ✅ | 0/5 |
+| `deepflix` | ✅ | ✅ | 5/5 ⭐ |
+| `detodopeliculas` | ✅ | ✅ | 3/5 |
+| `doramasflix` | ✅ | ✅ | 2/5 |
+| `embed69` | ✅ | ✅ | 4/5 |
+| `henaojara` | ✅ | ✅ | 3/5 |
+| `jkanime` | ✅ | ✅ | 3/5 |
+| `lamovie` | ✅ | ✅ | 4/5 |
+| `latanime` | ✅ | ✅ | 4/5 |
+| `max` | ✅ | ✅ | 5/5 ⭐ |
+| `monoschinos` | ✅ | ✅ | 4/5 |
+| `pelispedia` | ✅ | ✅ | 5/5 ⭐ |
+| `pelisforte` | ✅ | ✅ | 3/5 |
+| `pelisplus` | ✅ | ✅ | 2/5 |
+| `peliserieshoy` | ✅ | ✅ | 0/5 |
+| `seriesflix` | ✅ | ✅ | 4/5 |
+| `seriesmetro` | ✅ | ✅ | 4/5 |
+| `sololatino` | ✅ | ✅ | 5/5 ⭐ |
+| `tioanime` | ✅ | ✅ | 1/5 |
+
+**Qué se probó:** a cada provider se le pasó el ID de TMDB de cada título y se llamó `getStreams(tmdbId, tipo, temporada, episodio)`. Un título cuenta como aprobado si devolvió al menos un stream con `url` o `infoHash`; `EMPTY`, `TIMEOUT` y `ERROR` cuentan como fallo.
+
+**Score:** cantidad de títulos con al menos un stream (`OK`) sobre el total de títulos aplicables. `⭐` significa puntuación perfecta: el provider encontró **todos** los títulos de su suite.
+
+- Los providers de **anime** se prueban contra 5 anime: *Naruto*, *Jujutsu Kaisen*, *One Piece*, *Demon Slayer* y *Solo Leveling*.
+- El resto se prueba contra 5 películas/series: *Obsession*, *Backrooms* (2026), *Parasite*, *Squid Game* y *Toy Story 5*.
+- `cinecalidad` solo soporta películas, así que su máximo aplicable es `4/4`.
+- Última prueba: **9 nov 2026**, con `--score --timeout=30000 --concurrency=8`. El score es una foto del momento: los sitios cambian y un provider puede fallar de forma intermitente.
+
 ---
 
 ## Pruebas locales (opcional)
@@ -73,13 +84,24 @@ El repositorio incluye `test.js` para comprobar los providers desde tu PC. **No 
 Requisitos: Node.js 18 o superior y `crypto-js` (`npm install crypto-js`).
 
 ```bash
-node test.js                        # cascade: todos contra el primer título; solo los fallos pasan al siguiente
-node test.js --fixtures=squidgame   # todos los providers contra un solo título
-node test.js --matrix               # todos los providers contra todos los títulos
-node test.js --only=jkanime -v      # un provider concreto, mostrando sus logs
+node test.js                          # score: anime vs 5 anime, el resto vs 5 películas/series
+node test.js --score --json           # mismo test, salida JSON (para actualizar el README)
+node test.js --suite=anime --matrix   # matriz de todos los providers contra los 5 anime
+node test.js --suite=general --matrix # matriz contra los 5 títulos generales
+node test.js --fixtures=squidgame     # un solo título, para todos los providers
+node test.js --only=jkanime -v        # un provider concreto, mostrando sus logs
+node test.js --list                   # ver providers, suites y títulos sin ejecutar nada
 ```
 
-Estados: `OK n` (n streams), `EMPTY` (respondió sin streams), `TIMEOUT`, `ERROR` y `—` (tipo no soportado).
+Modos:
+
+- **score** (por defecto): cada provider se prueba contra su suite y se calcula `OK / aplicables`. Los providers de anime usan la suite de anime; el resto, la general.
+- **`--cascade`**: todos contra el primer título; solo los que fallan pasan al siguiente.
+- **`--matrix`**: todos los providers contra todos los títulos seleccionados.
+
+Opciones útiles: `--suite=auto|general|anime|all`, `--fixtures=...`, `--only=...`, `--skip=...`, `--timeout=30000`, `--concurrency=6`, `--strict` (sale con error si algún provider no es perfecto).
+
+Estados: `OK n` (n streams), `EMPTY` (respondió sin streams), `TIMEOUT`, `ERROR` y `—` (tipo no soportado). En el score, `—` no cuenta en el denominador porque ese título no aplica al provider.
 
 ---
 
