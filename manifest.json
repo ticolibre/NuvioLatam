@@ -1,6 +1,6 @@
 {
   "name": "Nuvio Latam+",
-  "version": "2.2.26",
+  "version": "2.2.27",
   "scrapers": [
     {
       "id": "max",
@@ -459,6 +459,22 @@
         "movie"
       ],
       "filename": "providers/peliculasflix.js",
+      "enabled": true,
+      "contentLanguage": [
+        "es"
+      ]
+    },
+    {
+      "id": "hdfull",
+      "name": "HDFull",
+      "description": "Streams en Español desde hdfull.love",
+      "version": "1.0.0",
+      "author": "redblacker8",
+      "supportedTypes": [
+        "movie",
+        "tv"
+      ],
+      "filename": "providers/hdfull.js",
       "enabled": true,
       "contentLanguage": [
         "es"

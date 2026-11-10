@@ -51,6 +51,7 @@ Esto es un **plugin para Nuvio**. Para instalarlo:
 | `detodopeliculas` | ✅ | ✅ | 3/5 |
 | `doramasflix` | ✅ | ✅ | 2/5 |
 | `embed69` | ✅ | ✅ | 4/5 |
+| `hdfull` | ✅ | ✅ | 5/5 ⭐ |
 | `henaojara` | ✅ | ✅ | 3/5 |
 | `jkanime` | ✅ | ✅ | 3/5 |
 | `lamovie` | ✅ | ✅ | 4/5 |
@@ -74,7 +75,7 @@ Esto es un **plugin para Nuvio**. Para instalarlo:
 - El resto se prueba contra 5 películas/series: *Obsession*, *Backrooms* (2026), *Parasite*, *Squid Game* y *Toy Story 5*.
 - `cinecalidad` solo soporta películas, así que su máximo aplicable es `4/4`.
 - `peliculasflix` también es solo de películas, así que su máximo aplicable es `4/4`.
-- Última prueba: **9 nov 2026** (resto de providers) y **10 nov 2026** (`peliculasflix`), con `--score --timeout=30000 --concurrency=8`. El score es una foto del momento: los sitios cambian y un provider puede fallar de forma intermitente.
+- Última prueba: **9 nov 2026** (resto de providers) y **10 nov 2026** (`peliculasflix` y `hdfull`), con `--score --timeout=30000 --concurrency=8`. `hdfull` se midió aparte con `--timeout=60000 --concurrency=1`. El score es una foto del momento: los sitios cambian y un provider puede fallar de forma intermitente.
 
 ---
 
