@@ -57,6 +57,7 @@ Esto es un **plugin para Nuvio**. Para instalarlo:
 | `latanime` | ✅ | ✅ | 4/5 |
 | `max` | ✅ | ✅ | 5/5 ⭐ |
 | `monoschinos` | ✅ | ✅ | 4/5 |
+| `peliculasflix` | ✅ | ❌ | 1/4 |
 | `pelispedia` | ✅ | ✅ | 5/5 ⭐ |
 | `pelisforte` | ✅ | ✅ | 3/5 |
 | `pelisplus` | ✅ | ✅ | 2/5 |
@@ -72,7 +73,8 @@ Esto es un **plugin para Nuvio**. Para instalarlo:
 - Los providers de **anime** se prueban contra 5 anime: *Naruto*, *Jujutsu Kaisen*, *One Piece*, *Demon Slayer* y *Solo Leveling*.
 - El resto se prueba contra 5 películas/series: *Obsession*, *Backrooms* (2026), *Parasite*, *Squid Game* y *Toy Story 5*.
 - `cinecalidad` solo soporta películas, así que su máximo aplicable es `4/4`.
-- Última prueba: **9 nov 2026**, con `--score --timeout=30000 --concurrency=8`. El score es una foto del momento: los sitios cambian y un provider puede fallar de forma intermitente.
+- `peliculasflix` también es solo de películas, así que su máximo aplicable es `4/4`.
+- Última prueba: **9 nov 2026** (resto de providers) y **10 nov 2026** (`peliculasflix`), con `--score --timeout=30000 --concurrency=8`. El score es una foto del momento: los sitios cambian y un provider puede fallar de forma intermitente.
 
 ---
 
