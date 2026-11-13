@@ -45,6 +45,7 @@ const MANIFEST_PATH = path.join(ROOT, 'manifest.json');
 //
 //   general -> movie/series sources (5 titles)
 //   anime   -> anime sources (5 series)
+//   cartoon -> cartoon sources (5 series)
 //   extra   -> still available with --fixtures=..., not part of the score
 //
 // The score for a provider is OK / applicable titles within its suite.
@@ -144,6 +145,53 @@ const FIXTURES = [
     episode: 1,
   },
 
+  // --- cartoon suite -------------------------------------------------------
+  {
+    key: 'bobesponja',
+    suite: 'cartoon',
+    label: 'Bob Esponja',
+    tmdbId: '387',
+    type: 'tv',
+    season: 1,
+    episode: 1,
+  },
+  {
+    key: 'dragonballz',
+    suite: 'cartoon',
+    label: 'Dragon Ball Z',
+    tmdbId: '12971',
+    type: 'tv',
+    season: 1,
+    episode: 1,
+  },
+  {
+    key: 'simpsons',
+    suite: 'cartoon',
+    label: 'Los Simpson',
+    tmdbId: '456',
+    type: 'tv',
+    season: 2,
+    episode: 3,
+  },
+  {
+    key: 'scooby',
+    suite: 'cartoon',
+    label: 'Scooby-Doo',
+    tmdbId: '926',
+    type: 'tv',
+    season: 1,
+    episode: 2,
+  },
+  {
+    key: 'perrostontos',
+    suite: 'cartoon',
+    label: '2 Perros Tontos',
+    tmdbId: '1916',
+    type: 'tv',
+    season: 1,
+    episode: 1,
+  },
+
   // --- extra fixtures (manual only) ---------------------------------------
   {
     key: 'aftersun',
@@ -168,6 +216,7 @@ const FIXTURES = [
 const SUITE_KEYS = {
   general: ['obsession', 'backrooms', 'parasite', 'squidgame', 'toystory'],
   anime: ['naruto', 'jujutsu', 'onepiece', 'demonslayer', 'sololeveling'],
+  cartoon: ['bobesponja', 'dragonballz', 'simpsons', 'scooby', 'perrostontos'],
 };
 
 // Anime-only sources. Everything else defaults to the general suite.
@@ -180,6 +229,9 @@ const ANIME_PROVIDERS = new Set([
   'monoschinos',
   'tioanime',
 ]);
+
+// Fuentes solo de dibujos animados.
+const CARTOON_PROVIDERS = new Set(['lacartoons']);
 
 function fixturesForSuite(suite) {
   const keys = SUITE_KEYS[suite];
@@ -231,7 +283,7 @@ function parseArgs(argv) {
   }
 
   if (opts.suite !== 'auto' && opts.suite !== 'all' && !SUITE_KEYS[opts.suite]) {
-    process.stderr.write(`Unknown suite: ${opts.suite}. Valid suites: auto, general, anime, all\n`);
+    process.stderr.write(`Unknown suite: ${opts.suite}. Valid suites: auto, general, anime, cartoon, all\n`);
     opts.help = true;
   }
 
@@ -253,13 +305,14 @@ Modes:
 
 Options:
   --suite=auto        auto (default): anime providers use the anime suite,
-                      everything else uses the general suite.
+                      cartoon providers use the cartoon suite, the rest general.
   --suite=general     Force the 5 general titles.
   --suite=anime       Force the 5 anime titles.
-  --suite=all         Force every fixture (general + anime + extras).
+  --suite=cartoon     Force the 5 cartoon titles.
+  --suite=all         Force every fixture (general + anime + cartoon + extras).
   --only=a,b          Only run these providers (id or name, case-insensitive)
   --skip=a,b          Skip these providers
-  --fixtures=obsession,backrooms,parasite,squidgame,toystory,naruto,jujutsu,onepiece,demonslayer,sololeveling
+  --fixtures=obsession,backrooms,parasite,squidgame,toystory,naruto,jujutsu,onepiece,demonslayer,sololeveling,bobesponja,dragonballz,simpsons,scooby,perrostontos
                       Override the suite with an explicit fixture list
   --timeout=30000     Per-provider timeout in ms (default 30000)
   --concurrency=6     Providers running at once (default 6)
@@ -272,6 +325,7 @@ Options:
 Suites:
   general (5)  Obsession, Backrooms, Parasite, Squid Game, Toy Story 5
   anime   (5)  Naruto, Jujutsu Kaisen, One Piece, Demon Slayer, Solo Leveling
+  cartoon (5)  Bob Esponja, Dragon Ball Z, Los Simpson, Scooby-Doo, 2 Perros Tontos
   extra   (2)  Aftersun, Hope — manual only, never part of the score
 
 Statuses:
@@ -358,7 +412,7 @@ function loadProviders() {
         name: s.name || id,
         filename: s.filename,
         supportedTypes: Array.isArray(s.supportedTypes) ? s.supportedTypes : ['movie', 'tv'],
-        suite: ANIME_PROVIDERS.has(id) ? 'anime' : 'general',
+        suite: ANIME_PROVIDERS.has(id) ? 'anime' : CARTOON_PROVIDERS.has(id) ? 'cartoon' : 'general',
       };
     });
 }
@@ -637,7 +691,7 @@ async function main() {
     for (const p of providers) {
       out(`  ${pad(p.name, 22)} ${dim(`(${p.id})`)}  ${p.suite}`);
     }
-    for (const suite of ['general', 'anime', 'extra']) {
+    for (const suite of ['general', 'anime', 'cartoon', 'extra']) {
       const list = suite === 'extra' ? FIXTURES.filter((f) => f.suite === 'extra') : fixturesForSuite(suite);
       out(bold(`Fixtures — ${suite} (${list.length}):`));
       for (const f of list) {
@@ -666,7 +720,7 @@ async function main() {
     out(bold(`Nuvio Latam+ provider test — ${mode}`));
     if (mode === 'score') {
       out(
-        `Suites: general ${fixturesForSuite('general').length} titles · anime ${fixturesForSuite('anime').length} titles` +
+        `Suites: general ${fixturesForSuite('general').length} titles · anime ${fixturesForSuite('anime').length} titles · cartoon ${fixturesForSuite('cartoon').length} titles` +
           (opts.suite !== 'auto' ? ` · override: ${opts.suite}` : ''),
       );
       if (fixtureOverride) out(`Fixtures: ${fixtureOverride.map((f) => f.label).join(' · ')}`);

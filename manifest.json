@@ -1,6 +1,6 @@
 {
   "name": "Nuvio Latam+",
-  "version": "2.2.27",
+  "version": "2.2.29",
   "scrapers": [
     {
       "id": "max",
@@ -475,6 +475,37 @@
         "tv"
       ],
       "filename": "providers/hdfull.js",
+      "enabled": true,
+      "contentLanguage": [
+        "es"
+      ]
+    },
+    {
+      "id": "pelispanda",
+      "name": "Pelispanda",
+      "description": "Streams en Español desde pelispanda.org",
+      "version": "1.0.0",
+      "author": "TicoLibre",
+      "supportedTypes": [
+        "movie",
+        "tv"
+      ],
+      "filename": "providers/pelispanda.js",
+      "enabled": true,
+      "contentLanguage": [
+        "es"
+      ]
+    },
+    {
+      "id": "lacartoons",
+      "name": "LACartoons",
+      "description": "Series de dibujos animados en Español Latino desde lacartoons.com",
+      "version": "1.0.0",
+      "author": "TicoLibre",
+      "supportedTypes": [
+        "tv"
+      ],
+      "filename": "providers/lacartoons.js",
       "enabled": true,
       "contentLanguage": [
         "es"

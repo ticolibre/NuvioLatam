@@ -54,11 +54,13 @@ Esto es un **plugin para Nuvio**. Para instalarlo:
 | `hdfull` | ✅ | ✅ | 5/5 ⭐ |
 | `henaojara` | ✅ | ✅ | 3/5 |
 | `jkanime` | ✅ | ✅ | 3/5 |
+| `lacartoons` | ❌ | ✅ | 5/5 ⭐ |
 | `lamovie` | ✅ | ✅ | 4/5 |
 | `latanime` | ✅ | ✅ | 4/5 |
 | `max` | ✅ | ✅ | 5/5 ⭐ |
 | `monoschinos` | ✅ | ✅ | 4/5 |
 | `peliculasflix` | ✅ | ❌ | 1/4 |
+| `pelispanda` | ✅ | ✅ | 5/5 ⭐ |
 | `pelispedia` | ✅ | ✅ | 5/5 ⭐ |
 | `pelisforte` | ✅ | ✅ | 3/5 |
 | `pelisplus` | ✅ | ✅ | 2/5 |
@@ -72,10 +74,12 @@ Esto es un **plugin para Nuvio**. Para instalarlo:
 **Score:** cantidad de títulos con al menos un stream (`OK`) sobre el total de títulos aplicables. `⭐` significa puntuación perfecta: el provider encontró **todos** los títulos de su suite.
 
 - Los providers de **anime** se prueban contra 5 anime: *Naruto*, *Jujutsu Kaisen*, *One Piece*, *Demon Slayer* y *Solo Leveling*.
+- Los providers de **dibujos animados** se prueban contra 5 series: *Bob Esponja*, *Dragon Ball Z*, *Los Simpson*, *Scooby-Doo* y *2 Perros Tontos*.
 - El resto se prueba contra 5 películas/series: *Obsession*, *Backrooms* (2026), *Parasite*, *Squid Game* y *Toy Story 5*.
 - `cinecalidad` solo soporta películas, así que su máximo aplicable es `4/4`.
 - `peliculasflix` también es solo de películas, así que su máximo aplicable es `4/4`.
-- Última prueba: **9 nov 2026** (resto de providers) y **10 nov 2026** (`peliculasflix` y `hdfull`), con `--score --timeout=30000 --concurrency=8`. `hdfull` se midió aparte con `--timeout=60000 --concurrency=1`. El score es una foto del momento: los sitios cambian y un provider puede fallar de forma intermitente.
+- `lacartoons` solo soporta series, y como es un sitio de dibujos animados se mide con la suite de cartoons.
+- Última prueba: **9 nov 2026** (resto de providers), **10 nov 2026** (`peliculasflix` y `hdfull`) y **13 nov 2026** (`pelispanda` y `lacartoons`), con `--score --timeout=30000 --concurrency=8`. `hdfull` se midió aparte con `--timeout=60000 --concurrency=1`. El score es una foto del momento: los sitios cambian y un provider puede fallar de forma intermitente.
 
 ---
 
@@ -86,9 +90,10 @@ El repositorio incluye `test.js` para comprobar los providers desde tu PC. **No 
 Requisitos: Node.js 18 o superior y `crypto-js` (`npm install crypto-js`).
 
 ```bash
-node test.js                          # score: anime vs 5 anime, el resto vs 5 películas/series
+node test.js                          # score: cada provider vs su suite (anime, cartoon o general)
 node test.js --score --json           # mismo test, salida JSON (para actualizar el README)
 node test.js --suite=anime --matrix   # matriz de todos los providers contra los 5 anime
+node test.js --suite=cartoon --matrix # matriz contra los 5 dibujos animados
 node test.js --suite=general --matrix # matriz contra los 5 títulos generales
 node test.js --fixtures=squidgame     # un solo título, para todos los providers
 node test.js --only=jkanime -v        # un provider concreto, mostrando sus logs
@@ -97,11 +102,11 @@ node test.js --list                   # ver providers, suites y títulos sin eje
 
 Modos:
 
-- **score** (por defecto): cada provider se prueba contra su suite y se calcula `OK / aplicables`. Los providers de anime usan la suite de anime; el resto, la general.
+- **score** (por defecto): cada provider se prueba contra su suite y se calcula `OK / aplicables`. Los providers de anime usan la suite de anime, `lacartoons` usa la de cartoons y el resto, la general.
 - **`--cascade`**: todos contra el primer título; solo los que fallan pasan al siguiente.
 - **`--matrix`**: todos los providers contra todos los títulos seleccionados.
 
-Opciones útiles: `--suite=auto|general|anime|all`, `--fixtures=...`, `--only=...`, `--skip=...`, `--timeout=30000`, `--concurrency=6`, `--strict` (sale con error si algún provider no es perfecto).
+Opciones útiles: `--suite=auto|general|anime|cartoon|all`, `--fixtures=...`, `--only=...`, `--skip=...`, `--timeout=30000`, `--concurrency=6`, `--strict` (sale con error si algún provider no es perfecto).
 
 Estados: `OK n` (n streams), `EMPTY` (respondió sin streams), `TIMEOUT`, `ERROR` y `—` (tipo no soportado). En el score, `—` no cuenta en el denominador porque ese título no aplica al provider.
 
