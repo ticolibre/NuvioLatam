@@ -221,6 +221,7 @@ const SUITE_KEYS = {
 
 // Anime-only sources. Everything else defaults to the general suite.
 const ANIME_PROVIDERS = new Set([
+  'animed23',
   'animeav1',
   'animejl',
   'jkanime',

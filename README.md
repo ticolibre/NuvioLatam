@@ -40,6 +40,7 @@ Esto es un **plugin para Nuvio**. Para instalarlo:
 | `7movies` | ✅ | ✅ | 5/5 ⭐ |
 | `allcalidad` | ✅ | ✅ | 5/5 ⭐ |
 | `animeav1` | ✅ | ✅ | 3/5 |
+| `animed23` | ✅ | ✅ | 1/5 |
 | `animejl` | ✅ | ✅ | 4/5 |
 | `areshd` | ✅ | ✅ | 2/5 |
 | `cinecalidad` | ✅ | ❌ | 3/4 |
@@ -79,7 +80,7 @@ Esto es un **plugin para Nuvio**. Para instalarlo:
 - `cinecalidad` solo soporta películas, así que su máximo aplicable es `4/4`.
 - `peliculasflix` también es solo de películas, así que su máximo aplicable es `4/4`.
 - `lacartoons` solo soporta series, y como es un sitio de dibujos animados se mide con la suite de cartoons.
-- Última prueba: **9 nov 2026** (resto de providers), **10 nov 2026** (`peliculasflix` y `hdfull`) y **13 nov 2026** (`pelispanda` y `lacartoons`), con `--score --timeout=30000 --concurrency=8`. `hdfull` se midió aparte con `--timeout=60000 --concurrency=1`. El score es una foto del momento: los sitios cambian y un provider puede fallar de forma intermitente.
+- Última prueba: **9 nov 2026** (resto de providers), **10 nov 2026** (`peliculasflix` y `hdfull`) y **13 nov 2026** (`pelispanda`, `lacartoons` y `animed23`), con `--score --timeout=30000 --concurrency=8`. `hdfull` se midió aparte con `--timeout=60000 --concurrency=1`. El score es una foto del momento: los sitios cambian y un provider puede fallar de forma intermitente.
 
 ---
 
